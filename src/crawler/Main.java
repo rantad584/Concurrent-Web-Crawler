@@ -1,0 +1,25 @@
+package crawler;
+
+public class Main
+{
+	public static void main(String[] args)
+	{
+		String seedURL = "http://info.cern.ch";
+		String keyword = "the";
+		int depth = 2;
+		int maxPages = 50;
+
+		WebAnalyser webAnalyser = new WebAnalyser(seedURL, keyword, depth, maxPages);
+
+		try
+		{
+			webAnalyser.find(keyword);
+			System.out.println("\nWebAnalyser threads finished");
+			webAnalyser.printStatistics();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+}
