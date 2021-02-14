@@ -13,10 +13,6 @@ import java.util.regex.Pattern;
 
 public class Helper
 {
-    /* Regular expressions  */
-    public static final Pattern link_pattern = Pattern.compile("(?i)<a([^>]+)>(.+?)</a>");
-    public static final Pattern href_pattern = Pattern.compile("\\s*(?i)href\\s*=\\s*(\"([^\"]*\")|'[^']*'|([^'\">\\s]+))");
-
     public static int countNumberOfOccurrences(String word, String text)
     {
         Matcher m = Pattern.compile("\\b" + word + "\\b", Pattern.CASE_INSENSITIVE).matcher(text);
@@ -28,7 +24,7 @@ public class Helper
         return matches;
     }
 
-    public static String getContentFromURL(String URLstring)
+    public static String getContentFromURL(String urlString)
     {
         URL url;
         InputStream is = null;
@@ -37,8 +33,8 @@ public class Helper
 
         try
         {
-            url = new URL(URLstring);
-            is = url.openStream();
+            url = new URL(urlString);
+            is = url.openConnection().getInputStream();
             br = new BufferedReader(new InputStreamReader(is));
 
             StringBuilder sb = new StringBuilder();
@@ -52,14 +48,14 @@ public class Helper
             return sb.toString();
 
         }
-        catch(MalformedURLException mue)
+        catch(MalformedURLException e)
         {
-            System.out.println(mue.toString());
-            mue.printStackTrace();
+            System.out.println(e.toString());
+            e.printStackTrace();
         }
-        catch(IOException ioe)
+        catch(IOException e)
         {
-            //System.out.println(ioe.toString());
+            //System.out.println(e.toString());
         }
         finally
         {
@@ -70,29 +66,28 @@ public class Helper
                     is.close();
                 }
             }
-            catch(IOException ioe)
+            catch(IOException e)
             {
-                ioe.printStackTrace();
-                System.out.println(ioe.toString());
+                e.printStackTrace();
+                System.out.println(e.toString());
             }
         }
         return "";
     }
 
-    public static ArrayList<String> getHyperlinksFromContent(String URLstring, String content)
+    public static ArrayList<String> getHyperlinksFromContent(String urlString, String content)
     {
-
         ArrayList<String> ret = new ArrayList<>();
 
         try
         {
-            URL url = new URL(URLstring);
-            Matcher matcher = link_pattern.matcher(content);
+            URL url = new URL(urlString);
+            Matcher matcher = Pattern.compile("(?i)<a([^>]+)>(.+?)</a>").matcher(content);
 
             while(matcher.find())
             {
                 String links = matcher.group(1);
-                Matcher hrefs = href_pattern.matcher(links);
+                Matcher hrefs = Pattern.compile("\\s*(?i)href\\s*=\\s*(\"([^\"]*\")|'[^']*'|([^'\">\\s]+))").matcher(links);
 
                 while(hrefs.find())
                 {
@@ -119,7 +114,6 @@ public class Helper
                         {
                             ret.add(address);
                         }
-
                     }
                     else
                     {
@@ -138,9 +132,9 @@ public class Helper
                 }
             }
         }
-        catch(Exception ex)
+        catch(Exception e)
         {
-            //System.out.println(ex.toString());
+            //System.out.println(e.toString());
         }
 
         return ret;

@@ -3,7 +3,6 @@ package crawler;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class WebAnalyser
@@ -12,6 +11,8 @@ public class WebAnalyser
 	private String keyword;
 	private int size;
 	private int maxPages;
+	private int maxQueueSize = 10000;
+	private int TIME_OUT = 10000;
 	private List<String> visited = new ArrayList<>();
 	private Map<String, Integer> results = new HashMap<>();
 	private Map<String, Integer> depth = new HashMap<>();
@@ -26,8 +27,10 @@ public class WebAnalyser
 
 	public void find(String keyword) throws InterruptedException
 	{
+		long startTime = System.currentTimeMillis();
+
 		Queue<String> Q = new ArrayDeque<>(); // Queue to store urls to be visited
-		LinkedBlockingQueue<Worker.WorkResult> workResultQueue = new LinkedBlockingQueue<>();
+		ResourceQueue<WorkResult> workResultQueue = new ResourceQueue<>(maxQueueSize);
 
 		ExecutorService executor = Executors.newFixedThreadPool(20); // Initialise a thread pool of 20 threads
 
@@ -39,12 +42,14 @@ public class WebAnalyser
 			Worker worker = new Worker(Q.poll(), keyword, workResultQueue);
 			executor.execute(worker); // Executes the threads
 
-			Worker.WorkResult workResult = workResultQueue.take();
+			WorkResult workResult = workResultQueue.take();
 			visited.add(workResult.URL);
 
 			depth.putIfAbsent(seedURL, 0);
 
-			if(depth.get(currentURL) > size || visited.size() > maxPages)
+			if(depth.get(currentURL) > size
+					|| visited.size() > maxPages
+					|| (System.currentTimeMillis() - startTime) >= TIME_OUT)
 			{
 				break;
 			}
@@ -69,7 +74,11 @@ public class WebAnalyser
 
 		try
 		{
-			executor.awaitTermination(10, TimeUnit.SECONDS);
+			long waitTime = Math.max(0, TIME_OUT - (System.currentTimeMillis() - startTime));
+			if(executor.awaitTermination(waitTime, TimeUnit.MILLISECONDS))
+			{
+				System.out.println("Threads did not finish in " + waitTime + " milliseconds");
+			}
 		}
 		catch(InterruptedException e)
 		{

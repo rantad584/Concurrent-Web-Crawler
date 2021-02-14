@@ -4,7 +4,7 @@ public class Main
 {
 	public static void main(String[] args)
 	{
-		String seedURL = "http://info.cern.ch";
+		String seedURL = "http://www.columbia.edu/~fdc/sample.html";
 		String keyword = "the";
 		int depth = 2;
 		int maxPages = 50;
@@ -14,7 +14,6 @@ public class Main
 		try
 		{
 			webAnalyser.find(keyword);
-			System.out.println("\nWebAnalyser threads finished");
 			webAnalyser.printStatistics();
 		}
 		catch(Exception e)
